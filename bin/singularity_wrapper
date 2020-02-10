@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#
+# Singularity wrapper is a small script that runs commands in image
+# found by environment variable $SING_IMAGE. Flags such as bind mounts,
+# nvidia flags etc. can be set in $SING_FLAGS-environment variable.
+#
+
+usage() {
+    cat << EOF
+USAGE:
+
+    To run a command in an image:
+        singularity_wrapper exec <command>
+
+    To run the image using its preferred method:
+        singularity_wrapper run
+
+    To launch an interactive shell (e.g. /bin/bash) in the image:
+        singularity_wrapper shell <shell>
+EOF
+}
+
+if [ -z "$SING_IMAGE" ] ; then
+  echo "Cannot find a singularity image as \$SING_IMAGE has not been set."
+  exit 1
+fi
+
+if [ ! -f "$SING_IMAGE" ] ; then
+  echo "Cannot find a singularity image as \$SING_IMAGE does not point to an image file."
+  exit 1
+fi
+
+nopts=$#
+
+if [[ $nopts -eq 0 ]]; then
+  usage()
+  exit 1
+fi
+
+case "$1" in
+    exec)
+        singularity exec $SING_FLAGS $SING_IMAGE "${@:2}"
+        exit $?
+        ;;
+    shell)
+        if [[ $nopts -lt 2 ]]; then
+            singularity shell $SING_FLAGS $SING_IMAGE
+            exit $?
+        else
+            singularity shell -s $2 $SING_FLAGS $SING_IMAGE
+            exit $?
+        fi
+        ;;
+    run)
+        singularity run $SING_FLAGS $SING_IMAGE "${@:2}"
+        exit $?
+esac
