@@ -60,4 +60,9 @@ case "$1" in
     run)
         singularity run $SING_FLAGS $SING_IMAGE "${@:2}"
         exit $?
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
 esac
